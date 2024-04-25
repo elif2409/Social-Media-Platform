@@ -1,4 +1,4 @@
-# h file of the node class
+// h file of the node class
 #ifndef NODE_H
 #define NODE_H
 template<class ItemType>
@@ -23,7 +23,7 @@ public:
 #include "Node.cpp"
 #endif
 
-# cpp file below
+// cpp file below
 #ifndef NODE_CPP
 #define NODE_CPP
 #include "Node.h"
