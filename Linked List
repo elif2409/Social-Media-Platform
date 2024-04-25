@@ -1,0 +1,226 @@
+// h file for the linked list class
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
+#include "Node.h"
+
+template<class ItemType>
+class LinkedList {
+private:
+    Node<ItemType>* headPtr;
+    int itemCount;
+    Node<ItemType>* getNodeAt(int position) const;
+public:
+    LinkedList();
+    LinkedList(const LinkedList<ItemType>& aList);
+    virtual ~LinkedList();
+
+    void linkedListInsert(Node<ItemType>*& headPtr, ItemType& newItem);
+    bool isEmpty() const;
+    int getLength() const;
+    bool insert(int newPosition, const ItemType& newEntry);
+    bool remove(int position);
+    void clear();
+
+    ItemType getEntry(int position) const;
+    ItemType* getObj(int position) const;
+     Node<ItemType>* getHeadPtr() const;
+     Node<ItemType>** getHeadPtrByPointer();
+    void setHeadPtr(Node<ItemType>* head);
+    ItemType replace(int position, const ItemType newEntry);
+};
+
+#include "LinkedList.cpp"
+#endif // LINKED_LIST_
+
+// cpp file for linked list class
+#ifndef LINKED_LIST_CPP
+#define LINKED_LIST_CPP
+#include "LinkedList.h"
+#include <string>
+#include <cassert>
+using namespace std;
+
+template<class ItemType>
+LinkedList<ItemType>::LinkedList() {
+    headPtr = nullptr;
+    itemCount = 0;
+}
+
+// method getLength
+template<class ItemType>
+int LinkedList<ItemType>::getLength() const {
+    int c = 0;
+    Node<ItemType>* a = headPtr;
+    while(a != nullptr) {
+        c++;
+        a = a->getNext();
+    }
+    return c;
+} //end of getLength
+
+// method getEntry
+template<class ItemType>
+ItemType LinkedList<ItemType>::getEntry(int position) const
+{
+    bool ableToGet = (position >= 1) && (position <= itemCount);
+    if(ableToGet) {
+        Node<ItemType>* nodePtr = getNodeAt(position);
+        return nodePtr->getItem();
+    }
+    else {
+        std::string message = "getEntry() called with an empty list or ";
+        message = message + "invalid position. ";
+       return ItemType(); //to solve the warnings
+    }
+}
+
+template<class ItemType>
+ItemType* LinkedList<ItemType>::getObj(int position) const
+{
+    bool ableToGet = (position >= 1) && (position <= itemCount);
+    if(ableToGet) {
+        Node<ItemType>* nodePtr = getNodeAt(position);
+        if(nodePtr!=nullptr)
+        return nodePtr->getItemPtr();
+    }
+    else {
+        std::string message = "getEntry() called with an empty list or ";
+        message = message + "invalid position. ";
+       return nullptr;
+    }
+    return nullptr;
+}
+
+template<class ItemType>
+Node<ItemType>** LinkedList<ItemType>::getHeadPtrByPointer(){
+    Node<ItemType>** a = &(headPtr);
+    return a;
+}
+
+// method getNodeAt
+template<class ItemType>
+Node<ItemType>* LinkedList<ItemType>::getNodeAt(int position) const {
+    assert((position>=1)&&(position<=itemCount));
+    Node<ItemType>* curPtr = headPtr;
+    for(int skip=1; skip<position; skip++) {
+        curPtr = curPtr->getNext();
+    }
+    return curPtr;
+} // end of getNodeAt
+
+//method for sorted insertion
+template<class ItemType>
+void LinkedList<ItemType>::linkedListInsert(Node<ItemType>*& headPtr, ItemType& newItem)  {
+        Node<ItemType>* newPtr = new Node<ItemType>;
+        newPtr->setItem(newItem);
+     if ((headPtr == nullptr) || (newItem < headPtr->getItem())){
+        newPtr->setNext(headPtr);
+        headPtr = newPtr;
+        itemCount++;
+        return;
+    }
+
+    else {
+        Node<ItemType>* curr = headPtr->getNext();
+        Node<ItemType>* prev = headPtr;
+        if(curr == nullptr) {
+            prev->setNext(newPtr);
+            newPtr->setNext(curr);
+             itemCount++;
+            return;
+        }
+        while(curr->getNext() != nullptr && curr->getItem() < newItem) {
+            curr = curr->getNext();
+            prev = prev->getNext();
+
+        }
+        if(newItem < curr->getItem() && prev != nullptr) {
+            prev->setNext(newPtr);
+            newPtr->setNext(curr);
+            itemCount++;
+        }
+        else {
+            newPtr->setNext(curr->getNext());
+            curr->setNext(newPtr);
+            itemCount++;
+
+        }
+
+    }
+
+}//end of insert
+
+
+//method isEmpty
+template<class ItemType>
+bool LinkedList<ItemType>::isEmpty() const {
+    if(itemCount == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+// method remove
+template<class ItemType>
+bool LinkedList<ItemType>::remove(int position) {
+    bool ableToRemove = (position >= 1) && (position <= itemCount);
+    if(ableToRemove) {
+        Node<ItemType>* curPtr = nullptr;
+        if(position == 1) {
+            curPtr = headPtr;
+            headPtr = headPtr->getNext();
+        }
+        else {
+            Node<ItemType>* prevPtr = getNodeAt(position-1);
+            curPtr = prevPtr->getNext();
+            prevPtr->setNext(curPtr->getNext());
+        }
+        curPtr->setNext(nullptr);
+        delete curPtr;
+        curPtr = nullptr;
+        itemCount--;
+    }
+    return ableToRemove;
+} // end of remove method
+
+//clear method
+template<class ItemType>
+void LinkedList<ItemType>::clear() {
+    while(!isEmpty())
+        remove(1);
+} // end of clear method
+
+//destructor
+template<class ItemType>
+LinkedList<ItemType>::~LinkedList() {
+    clear();
+} // end destructor
+
+//copy constructor
+template<class ItemType>
+LinkedList<ItemType>::LinkedList(const LinkedList<ItemType>& aList) {
+    itemCount = aList.itemCount;
+    Node<ItemType>* origChainPtr = aList.headPtr;
+    if(origChainPtr == nullptr) {
+        headPtr = nullptr;
+    }
+    else {
+        headPtr = new Node<ItemType>();
+        headPtr->setItem(origChainPtr->getItem());
+        Node<ItemType>* newChainPtr = headPtr;
+        origChainPtr = origChainPtr->getNext();
+        while(origChainPtr != nullptr) {
+            ItemType nextItem = origChainPtr->getItem();
+            Node<ItemType>* newNodePtr = new Node<ItemType>(nextItem);
+            newChainPtr->setNext(newNodePtr);
+            newChainPtr = newChainPtr->getNext();
+            origChainPtr = origChainPtr->getNext();
+        }
+        newChainPtr->setNext(nullptr);
+    }
+} // end of copy constructor
+
+
+#endif
